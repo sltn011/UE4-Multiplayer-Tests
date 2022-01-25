@@ -22,17 +22,21 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	UStaticMeshComponent *StaticMesh;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
-	FVector DestinationOffset;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement", Meta = (MakeEditWidget = true))
+	FVector TargetPoint;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement", meta = (ClampMin = 0.0f))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement", Meta = (ClampMin = 0.0f))
 	float MoveSpeed;
 
 	virtual void BeginPlay() override;
 
 private:	
 
-	FVector _StartPoint;
+	FVector StartPoint;
+	FVector GlobalTargetPoint;
 
-	bool _bForwardMoving = true;
+	float Distance = 0.0f;
+
+	float MovementCounter = 0.0f;
+	bool bForwardMoving = true;
 };

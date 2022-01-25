@@ -16,7 +16,14 @@ void AMovingPlatform::BeginPlay()
 {
 	Super::BeginPlay();
 
-	_StartPoint = GetActorLocation();
+	if (HasAuthority()) {
+		SetReplicates(true);
+		SetReplicateMovement(true);
+	}
+
+	StartPoint = GetActorLocation();
+	GlobalTargetPoint = GetTransform().TransformPosition(TargetPoint);
+	Distance = FVector{ GlobalTargetPoint - StartPoint }.Size();
 }
 
 void AMovingPlatform::Tick(float DeltaTime)
@@ -25,26 +32,25 @@ void AMovingPlatform::Tick(float DeltaTime)
 
 	// Prevent platform from moving on client
 	// Only moves on client-server
-	//if (!HasAuthority()) {
-	//	return;
-	//}
+	if (!HasAuthority()) {
+		return;
+	}
 
 	FVector CurrentLocation = GetActorLocation();
-	FVector Destination = _StartPoint + DestinationOffset;
+	FVector DestinationLocation = GlobalTargetPoint;
 
-	FVector Direction = DestinationOffset;
-	Direction = _bForwardMoving ? Direction : -Direction;
+	FVector Direction = DestinationLocation - StartPoint;
+	Direction = bForwardMoving ? Direction : -Direction;
 	Direction = Direction.GetSafeNormal();
 
-	FVector MoveDelta = Direction * MoveSpeed * DeltaTime;
+	float Offset = MoveSpeed * DeltaTime;
+	FVector MoveDelta = Direction * Offset;
 	FVector NewLocation = CurrentLocation + MoveDelta;
 
-	float Bias = 1.0f;
-	if (FVector::PointsAreNear(NewLocation, Destination, Bias)) {
-		_bForwardMoving = false;
-	}
-	else if (FVector::PointsAreNear(NewLocation, _StartPoint, Bias)) {
-		_bForwardMoving = true;
+	MovementCounter += Offset;
+	if (MovementCounter > Distance) {
+		MovementCounter = 0.0f;
+		bForwardMoving ^= true;
 	}
 
 	SetActorLocation(NewLocation);
