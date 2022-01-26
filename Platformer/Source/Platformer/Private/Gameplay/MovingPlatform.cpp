@@ -3,8 +3,8 @@
 
 #include "Gameplay/MovingPlatform.h"
 
-AMovingPlatform::AMovingPlatform()
-{
+AMovingPlatform::AMovingPlatform(
+) {
 	PrimaryActorTick.bCanEverTick = true;
 
 	StaticMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMesh"));
@@ -12,8 +12,8 @@ AMovingPlatform::AMovingPlatform()
 	StaticMesh->SetMobility(EComponentMobility::Movable);
 }
 
-void AMovingPlatform::BeginPlay()
-{
+void AMovingPlatform::BeginPlay(
+) {
 	Super::BeginPlay();
 
 	if (HasAuthority()) {
@@ -26,16 +26,9 @@ void AMovingPlatform::BeginPlay()
 	Distance = FVector{ GlobalTargetPoint - StartPoint }.Size();
 }
 
-void AMovingPlatform::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-	// Prevent platform from moving on client
-	// Only moves on client-server
-	if (!HasAuthority()) {
-		return;
-	}
-
+void AMovingPlatform::MovePlatform(
+	float DeltaTime
+) {
 	FVector CurrentLocation = GetActorLocation();
 	FVector DestinationLocation = GlobalTargetPoint;
 
@@ -54,5 +47,19 @@ void AMovingPlatform::Tick(float DeltaTime)
 	}
 
 	SetActorLocation(NewLocation);
+}
+
+void AMovingPlatform::Tick(
+	float DeltaTime
+) {
+	Super::Tick(DeltaTime);
+
+	// Prevent platform from moving on client
+	// Only moves on client-server
+	if (!HasAuthority()) {
+		return;
+	}
+
+	MovePlatform(DeltaTime);
 }
 

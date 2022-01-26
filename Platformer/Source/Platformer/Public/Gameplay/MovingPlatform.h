@@ -13,9 +13,12 @@ class PLATFORMER_API AMovingPlatform : public AActor
 	
 public:	
 
-	AMovingPlatform();
+	AMovingPlatform(
+	);
 
-	virtual void Tick(float DeltaTime) override;
+	virtual void Tick(
+		float DeltaTime
+	) override;
 
 protected:
 
@@ -28,7 +31,12 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement", Meta = (ClampMin = 0.0f))
 	float MoveSpeed;
 
-	virtual void BeginPlay() override;
+	virtual void BeginPlay(
+	) override;
+
+	virtual void MovePlatform(
+		float DeltaTime
+	);
 
 private:	
 
