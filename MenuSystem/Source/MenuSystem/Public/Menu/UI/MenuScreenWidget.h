@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "UI/MenuBaseWidget.h"
+#include "Menu/UI/MenuBaseWidget.h"
 #include "MenuScreenWidget.generated.h"
 
 class UButton;
@@ -31,10 +31,10 @@ protected:
 	UEditableText *ServerIPInput;
 
 	UFUNCTION()
-	void OnHostButtonClicked(
+	virtual void OnHostButtonClicked(
 	);
 
 	UFUNCTION()
-	void OnJoinButtonClicked(
+	virtual void OnJoinButtonClicked(
 	);
 };

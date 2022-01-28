@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "UI/MenuScreenWidget.h"
+#include "Menu/UI/MenuScreenWidget.h"
 
 #include "Components/Button.h"
 #include "Components/EditableText.h"
@@ -12,12 +12,13 @@ bool UMenuScreenWidget::Initialize(
 ) {
     bool ParentVal = Super::Initialize();
 
-    check(HostButton);
-    check(JoinButton);
-    check(ServerIPInput);
-
-    HostButton->OnClicked.AddDynamic(this, &UMenuScreenWidget::OnHostButtonClicked);
-    JoinButton->OnClicked.AddDynamic(this, &UMenuScreenWidget::OnJoinButtonClicked);
+	if (HostButton) {
+		HostButton->OnClicked.AddDynamic(this, &UMenuScreenWidget::OnHostButtonClicked);
+	}
+	
+	if (JoinButton) {
+		JoinButton->OnClicked.AddDynamic(this, &UMenuScreenWidget::OnJoinButtonClicked);
+	}
 
     return ParentVal;
 }

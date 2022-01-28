@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "MenuPlayerPawn.h"
+#include "Menu/MenuPlayerPawn.h"
 
 #include "Camera/CameraComponent.h"
 
