@@ -18,14 +18,9 @@ public:
 	virtual void BeginPlay(
 	) override;
 
-	UMenuScreenWidget *GetMenuWidget(
-	);
-
 protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "GUI")
 	TSubclassOf<UMenuScreenWidget> MenuWidgetClass;
-
-	UMenuScreenWidget *MenuWidget = nullptr;
 
 };

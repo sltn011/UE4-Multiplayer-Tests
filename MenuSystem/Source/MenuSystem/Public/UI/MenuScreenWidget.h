@@ -3,10 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Menu/UI/MenuBaseWidget.h"
+#include "UI/MenuBaseWidget.h"
 #include "MenuScreenWidget.generated.h"
-
-class IMenuInterface;
 
 class UButton;
 class UEditableText;
@@ -20,11 +18,7 @@ public:
 
 	virtual bool Initialize(
 	) override;
-
-	void SetMenuImplementation(
-		IMenuInterface *MenuImplementationPtr
-	);
-
+	
 protected:
 
 	UPROPERTY(Meta = (BindWidget))
@@ -35,8 +29,6 @@ protected:
 
 	UPROPERTY(Meta = (BindWidget))
 	UEditableText *ServerIPInput;
-
-	IMenuInterface *MenuImplementation = nullptr;
 
 	UFUNCTION()
 	void OnHostButtonClicked(
