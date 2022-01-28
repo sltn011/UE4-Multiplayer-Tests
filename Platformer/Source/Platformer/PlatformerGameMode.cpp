@@ -2,6 +2,7 @@
 
 #include "PlatformerGameMode.h"
 #include "PlatformerCharacter.h"
+#include "PlatformerPlayerController.h"
 #include "UObject/ConstructorHelpers.h"
 
 APlatformerGameMode::APlatformerGameMode()
@@ -12,4 +13,6 @@ APlatformerGameMode::APlatformerGameMode()
 	{
 		DefaultPawnClass = PlayerPawnBPClass.Class;
 	}
+
+	PlayerControllerClass = APlatformerPlayerController::StaticClass();
 }
