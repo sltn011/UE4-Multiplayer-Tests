@@ -12,10 +12,7 @@ class APlatformerGameMode : public AGameModeBase
 	GENERATED_BODY()
 
 public:
-
-	APlatformerGameMode(
-	);
-
+	APlatformerGameMode();
 };
 
 

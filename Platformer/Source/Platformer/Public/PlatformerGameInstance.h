@@ -12,4 +12,16 @@ class PLATFORMER_API UPlatformerGameInstance : public UGameInstance
 	GENERATED_BODY()
 	
 public:
+
+	virtual void Init(
+	) override;
+
+	UFUNCTION(Exec)
+	void HostGame(
+	);
+
+	UFUNCTION(Exec)
+	void JoinGame(
+		const FString &HostIP
+	);
 };
