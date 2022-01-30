@@ -3,6 +3,8 @@
 
 #include "PlatformerGameInstance.h"
 
+#include "OnlineSubsystem.h"
+
 #include "Engine/Engine.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogPlatformerGameInstance, All, All);
@@ -10,6 +12,18 @@ DEFINE_LOG_CATEGORY_STATIC(LogPlatformerGameInstance, All, All);
 void UPlatformerGameInstance::Init(
 ) {
     Super::Init();
+
+    IOnlineSubsystem *OSS = IOnlineSubsystem::Get(FName{TEXT("NULL")});
+    if (OSS) {
+        UE_LOG(LogPlatformerGameInstance, Display, TEXT("Found OSS %s!"), *OSS->GetSubsystemName().ToString());
+        IOnlineSessionPtr SessionInterface = OSS->GetSessionInterface();
+        if (SessionInterface) {
+            UE_LOG(LogPlatformerGameInstance, Display, TEXT("Session Interface found!"));
+        }
+    }
+    else {
+        UE_LOG(LogPlatformerGameInstance, Display, TEXT("OSS not found!"));
+    }
 }
 
 void UPlatformerGameInstance::HostGame(
