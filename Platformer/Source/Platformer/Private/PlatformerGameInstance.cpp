@@ -4,6 +4,8 @@
 #include "PlatformerGameInstance.h"
 
 #include "OnlineSubsystem.h"
+#include "Interfaces/OnlineSessionInterface.h"
+#include "OnlineSessionSettings.h"
 
 #include "Engine/Engine.h"
 
@@ -13,16 +15,27 @@ void UPlatformerGameInstance::Init(
 ) {
     Super::Init();
 
-    IOnlineSubsystem *OSS = IOnlineSubsystem::Get(FName{TEXT("NULL")});
+    IOnlineSubsystem *OSS = IOnlineSubsystem::Get(FName{ TEXT("NULL") });
     if (OSS) {
         UE_LOG(LogPlatformerGameInstance, Display, TEXT("Found OSS %s!"), *OSS->GetSubsystemName().ToString());
-        IOnlineSessionPtr SessionInterface = OSS->GetSessionInterface();
+
+        SessionInterface = OSS->GetSessionInterface();
         if (SessionInterface) {
             UE_LOG(LogPlatformerGameInstance, Display, TEXT("Session Interface found!"));
+
+            SessionInterface->OnCreateSessionCompleteDelegates.AddUObject(
+                this,
+                &UPlatformerGameInstance::OnCreateSessionComplete
+            );
+
+            SessionInterface->OnDestroySessionCompleteDelegates.AddUObject(
+                this,
+                &UPlatformerGameInstance::OnDestroySessionComplete
+            );
         }
     }
     else {
-        UE_LOG(LogPlatformerGameInstance, Display, TEXT("OSS not found!"));
+        UE_LOG(LogPlatformerGameInstance, Error, TEXT("OSS not found!"));
     }
 }
 
@@ -30,17 +43,19 @@ void UPlatformerGameInstance::HostGame(
 ) {
     UE_LOG(LogPlatformerGameInstance, Display, TEXT("Hosting a game!"));
 
-    UEngine *Engine = GetEngine(); 
-    if (Engine) {
-        Engine->AddOnScreenDebugMessage(0, 2, FColor::Green, TEXT("Hosting a game!"));
+    if (!SessionInterface.IsValid()) {
+        UE_LOG(LogPlatformerGameInstance, Error, TEXT("Online session interface is invalid!"));
+        return;
     }
 
-    UWorld *World = GetWorld();
-    if (!World) {
-        UE_LOG(LogPlatformerGameInstance, Error, TEXT("Unexpected error! Can't host!"));
+    // Check if session already exists
+    FNamedOnlineSession *ExistingSession = SessionInterface->GetNamedSession(OnlineSessionName);
+    if (ExistingSession) {
+        SessionInterface->DestroySession(OnlineSessionName);
     }
-
-    World->ServerTravel("/Game/Platformer/Maps/GameLevel?listen");
+    else {
+        RequestCreateSession();
+    }
 }
 
 void UPlatformerGameInstance::JoinGame(
@@ -64,4 +79,49 @@ void UPlatformerGameInstance::JoinGame(
     }
 
     Player->ClientTravel(HostIP, ETravelType::TRAVEL_Absolute);
+}
+
+void UPlatformerGameInstance::RequestCreateSession(
+) {
+    if (!SessionInterface.IsValid()) {
+        UE_LOG(LogPlatformerGameInstance, Error, TEXT("Online session interface is invalid!"));
+        return;
+    }
+
+    FOnlineSessionSettings SessionSettings;
+    SessionInterface->CreateSession(0, OnlineSessionName, SessionSettings);
+}
+
+void UPlatformerGameInstance::OnCreateSessionComplete(
+    FName SessionName,
+    bool bSuccessful
+) {
+    if (!bSuccessful) {
+        UE_LOG(LogPlatformerGameInstance, Error, TEXT("Unexpected error while creating session! Can't host!"));
+        return;
+    }
+
+    UEngine *Engine = GetEngine();
+    if (Engine) {
+        Engine->AddOnScreenDebugMessage(0, 2, FColor::Green, TEXT("Hosting a game!"));
+    }
+
+    UWorld *World = GetWorld();
+    if (!World) {
+        UE_LOG(LogPlatformerGameInstance, Error, TEXT("Unexpected error! Can't host!"));
+    }
+
+    World->ServerTravel("/Game/Platformer/Maps/GameLevel?listen");
+}
+
+void UPlatformerGameInstance::OnDestroySessionComplete(
+    FName SessionName,
+    bool bSuccessful
+) {
+    if (!bSuccessful) {
+        UE_LOG(LogPlatformerGameInstance, Error, TEXT("Unexpected error while destroying session! Can't host!"));
+        return;
+    }
+
+    RequestCreateSession();
 }

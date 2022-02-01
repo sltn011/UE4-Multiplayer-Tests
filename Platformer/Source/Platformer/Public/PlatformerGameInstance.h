@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Engine/GameInstance.h"
+#include "Interfaces/OnlineSessionInterface.h"
 #include "PlatformerGameInstance.generated.h"
 
 UCLASS()
@@ -24,4 +25,23 @@ public:
 	void JoinGame(
 		const FString &HostIP
 	);
+
+protected:
+
+	void RequestCreateSession(
+	);
+
+	void OnCreateSessionComplete(
+		FName SessionName,
+		bool bSuccessful
+	);
+
+	void OnDestroySessionComplete(
+		FName SessionName,
+		bool bSuccessful
+	);
+
+	FName OnlineSessionName = TEXT("Platformer Game Session");
+
+	IOnlineSessionPtr SessionInterface;
 };
