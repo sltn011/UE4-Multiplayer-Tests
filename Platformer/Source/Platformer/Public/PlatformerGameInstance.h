@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Engine/GameInstance.h"
 #include "Interfaces/OnlineSessionInterface.h"
+#include "OnlineSessionSettings.h"
 #include "PlatformerGameInstance.generated.h"
 
 UCLASS()
@@ -41,7 +42,12 @@ protected:
 		bool bSuccessful
 	);
 
+	void OnFindSessionsComplete(
+		bool bSuccessful
+	);
+
 	FName OnlineSessionName = TEXT("Platformer Game Session");
 
 	IOnlineSessionPtr SessionInterface;
+	TSharedPtr<FOnlineSessionSearch> SessionSearchParams;
 };

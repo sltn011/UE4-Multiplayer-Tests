@@ -23,15 +23,33 @@ void UPlatformerGameInstance::Init(
         if (SessionInterface) {
             UE_LOG(LogPlatformerGameInstance, Display, TEXT("Session Interface found!"));
 
+            // Session create finished
             SessionInterface->OnCreateSessionCompleteDelegates.AddUObject(
                 this,
                 &UPlatformerGameInstance::OnCreateSessionComplete
             );
 
+            // Session destroy finished
             SessionInterface->OnDestroySessionCompleteDelegates.AddUObject(
                 this,
                 &UPlatformerGameInstance::OnDestroySessionComplete
             );
+
+            // Sessions search finished
+            SessionInterface->OnFindSessionsCompleteDelegates.AddUObject(
+                this,
+                &UPlatformerGameInstance::OnFindSessionsComplete
+            );
+
+            SessionSearchParams = MakeShared<FOnlineSessionSearch>();
+            if (SessionSearchParams.IsValid()) {
+                SessionSearchParams->bIsLanQuery = true;
+                SessionInterface->FindSessions(0, SessionSearchParams.ToSharedRef());
+            }
+            else {
+                UE_LOG(LogPlatformerGameInstance, Warning, TEXT("Error creating session search parameters!"));
+            }
+            
         }
     }
     else {
@@ -89,6 +107,9 @@ void UPlatformerGameInstance::RequestCreateSession(
     }
 
     FOnlineSessionSettings SessionSettings;
+    SessionSettings.bIsLANMatch = true;
+    SessionSettings.NumPublicConnections = 2;
+    SessionSettings.bShouldAdvertise = true;
     SessionInterface->CreateSession(0, OnlineSessionName, SessionSettings);
 }
 
@@ -124,4 +145,18 @@ void UPlatformerGameInstance::OnDestroySessionComplete(
     }
 
     RequestCreateSession();
+}
+
+void UPlatformerGameInstance::OnFindSessionsComplete(
+    bool bSuccessful
+) {
+    UE_LOG(LogPlatformerGameInstance, Display, TEXT("Sessions %s!"), bSuccessful ? TEXT("found") : TEXT("not found"));
+
+    if (!SessionSearchParams.IsValid()) {
+        return;
+    }
+
+    for (FOnlineSessionSearchResult const &FoundSession : SessionSearchParams->SearchResults) {
+        UE_LOG(LogPlatformerGameInstance, Display, TEXT("Found session: %s"), *FoundSession.GetSessionIdStr());
+    }
 }
