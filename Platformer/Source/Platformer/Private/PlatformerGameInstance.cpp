@@ -76,7 +76,7 @@ void UPlatformerGameInstance::HostGame(
     }
 }
 
-void UPlatformerGameInstance::JoinGame(
+void UPlatformerGameInstance::JoinGameByIP(
     const FString &HostIP
 ) {
     UE_LOG(LogPlatformerGameInstance, Display, TEXT("Joining game at %s"), *HostIP);

@@ -14,9 +14,9 @@ class PLATFORMER_API UPlatformerMenuScreenWidget : public UMenuScreenWidget
 public:
 
 	virtual void OnHostButtonClicked(
-	);
+	) override;
 
-	virtual void OnJoinButtonClicked(
-	);
+	virtual void OnJoinByIPButtonClicked(
+	) override;
 
 };

@@ -20,7 +20,7 @@ void UPlatformerMenuScreenWidget::OnHostButtonClicked(
     GameInstance->HostGame();
 }
 
-void UPlatformerMenuScreenWidget::OnJoinButtonClicked(
+void UPlatformerMenuScreenWidget::OnJoinByIPButtonClicked(
 ) {
     UE_LOG(LogPlatformerMenuScreen, Display, TEXT("Join button clicked!"));
 
@@ -34,5 +34,5 @@ void UPlatformerMenuScreenWidget::OnJoinButtonClicked(
     }
 
     FString ServerIP = ServerIPInput->GetText().ToString();
-    GameInstance->JoinGame(ServerIP);
+    GameInstance->JoinGameByIP(ServerIP);
 }

@@ -23,7 +23,7 @@ public:
 	);
 
 	UFUNCTION(Exec)
-	void JoinGame(
+	void JoinGameByIP(
 		const FString &HostIP
 	);
 

@@ -25,7 +25,7 @@ protected:
 	UButton *HostButton;
 
 	UPROPERTY(Meta = (BindWidget))
-	UButton *JoinButton;
+	UButton *JoinByIPButton;
 
 	UPROPERTY(Meta = (BindWidget))
 	UEditableText *ServerIPInput;
@@ -35,6 +35,6 @@ protected:
 	);
 
 	UFUNCTION()
-	virtual void OnJoinButtonClicked(
+	virtual void OnJoinByIPButtonClicked(
 	);
 };

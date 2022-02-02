@@ -16,8 +16,8 @@ bool UMenuScreenWidget::Initialize(
 		HostButton->OnClicked.AddDynamic(this, &UMenuScreenWidget::OnHostButtonClicked);
 	}
 	
-	if (JoinButton) {
-		JoinButton->OnClicked.AddDynamic(this, &UMenuScreenWidget::OnJoinButtonClicked);
+	if (JoinByIPButton) {
+		JoinByIPButton->OnClicked.AddDynamic(this, &UMenuScreenWidget::OnJoinByIPButtonClicked);
 	}
 
     return ParentVal;
@@ -28,7 +28,7 @@ void UMenuScreenWidget::OnHostButtonClicked(
     UE_LOG(LogMenuWidget, Display, TEXT("Host button clicked!"));
 }
 
-void UMenuScreenWidget::OnJoinButtonClicked(
+void UMenuScreenWidget::OnJoinByIPButtonClicked(
 ) {
     FText Input = ServerIPInput->GetText();
     FString InputString = Input.ToString();
