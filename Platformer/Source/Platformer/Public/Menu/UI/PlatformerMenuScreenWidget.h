@@ -6,6 +6,10 @@
 #include "Menu/UI/MenuScreenWidget.h"
 #include "PlatformerMenuScreenWidget.generated.h"
 
+class FOnlineSessionSearchResult;
+class UPlatformerSessionSelectWidget;
+class UScrollBox;
+
 UCLASS()
 class PLATFORMER_API UPlatformerMenuScreenWidget : public UMenuScreenWidget
 {
@@ -13,10 +17,25 @@ class PLATFORMER_API UPlatformerMenuScreenWidget : public UMenuScreenWidget
 	
 public:
 
+	virtual bool Initialize(
+	) override;
+
 	virtual void OnHostButtonClicked(
 	) override;
 
 	virtual void OnJoinByIPButtonClicked(
 	) override;
+
+protected:
+
+	void OnSessionsFound(
+		const TArray<FOnlineSessionSearchResult> &Sessions
+	);
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TSubclassOf<UPlatformerSessionSelectWidget> SessionSelectorClass;
+
+	UPROPERTY(meta = (BindWidget))
+	UScrollBox *AvailableSessions;
 
 };

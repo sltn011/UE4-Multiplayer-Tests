@@ -44,7 +44,7 @@ void UPlatformerGameInstance::Init(
             SessionSearchParams = MakeShared<FOnlineSessionSearch>();
             if (SessionSearchParams.IsValid()) {
                 SessionSearchParams->bIsLanQuery = true;
-                SessionInterface->FindSessions(0, SessionSearchParams.ToSharedRef());
+                RequestFindSessions();
             }
             else {
                 UE_LOG(LogPlatformerGameInstance, Warning, TEXT("Error creating session search parameters!"));
@@ -99,6 +99,22 @@ void UPlatformerGameInstance::JoinGameByIP(
     Player->ClientTravel(HostIP, ETravelType::TRAVEL_Absolute);
 }
 
+void UPlatformerGameInstance::JoinGameBySessionID(
+    const FString &SessionID
+) {
+    UE_LOG(LogPlatformerGameInstance, Display, TEXT("Joining game session %s"), *SessionID);
+}
+
+void UPlatformerGameInstance::RequestFindSessions(
+) {
+    if (SessionSearchParams.IsValid()) {
+        SessionInterface->FindSessions(0, SessionSearchParams.ToSharedRef());
+    }
+    else {
+        UE_LOG(LogPlatformerGameInstance, Warning, TEXT("Session search parameters are invalid!"));
+    }
+}
+
 void UPlatformerGameInstance::RequestCreateSession(
 ) {
     if (!SessionInterface.IsValid()) {
@@ -150,13 +166,27 @@ void UPlatformerGameInstance::OnDestroySessionComplete(
 void UPlatformerGameInstance::OnFindSessionsComplete(
     bool bSuccessful
 ) {
-    UE_LOG(LogPlatformerGameInstance, Display, TEXT("Sessions %s!"), bSuccessful ? TEXT("found") : TEXT("not found"));
+    UE_LOG(
+        LogPlatformerGameInstance,
+        Display,
+        TEXT("FindSessions: %s!"),
+        bSuccessful ? TEXT("Success") : TEXT("Fail")
+    );
 
     if (!SessionSearchParams.IsValid()) {
         return;
     }
 
+    UE_LOG(
+        LogPlatformerGameInstance,
+        Display,
+        TEXT("Found %d sessions"),
+        SessionSearchParams->SearchResults.Num()
+    );
+
     for (FOnlineSessionSearchResult const &FoundSession : SessionSearchParams->SearchResults) {
         UE_LOG(LogPlatformerGameInstance, Display, TEXT("Found session: %s"), *FoundSession.GetSessionIdStr());
     }
+
+    OnSessionsFoundDelegate.Broadcast(SessionSearchParams->SearchResults);
 }
