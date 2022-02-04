@@ -41,6 +41,12 @@ void UPlatformerGameInstance::Init(
                 &UPlatformerGameInstance::OnFindSessionsComplete
             );
 
+            // Joining found session
+            SessionInterface->OnJoinSessionCompleteDelegates.AddUObject(
+                this,
+                &UPlatformerGameInstance::OnJoinedTravel
+            );
+
             SessionSearchParams = MakeShared<FOnlineSessionSearch>();
             if (SessionSearchParams.IsValid()) {
                 SessionSearchParams->bIsLanQuery = true;
@@ -99,10 +105,25 @@ void UPlatformerGameInstance::JoinGameByIP(
     Player->ClientTravel(HostIP, ETravelType::TRAVEL_Absolute);
 }
 
-void UPlatformerGameInstance::JoinGameBySessionID(
-    const FString &SessionID
+void UPlatformerGameInstance::RequestJoinSelectedSession(
+    int32 SessionIndex
 ) {
-    UE_LOG(LogPlatformerGameInstance, Display, TEXT("Joining game session %s"), *SessionID);
+    if (!SessionInterface.IsValid()) {
+        UE_LOG(LogPlatformerGameInstance, Error, TEXT("Online session interface is invalid!"));
+        return;
+    }
+
+    if (!SessionSearchParams.IsValid()) {
+        UE_LOG(LogPlatformerGameInstance, Error, TEXT("Session search parameters are invalid!"));
+        return;
+    }
+
+    if (SessionIndex >= SessionSearchParams->SearchResults.Num()) {
+        UE_LOG(LogPlatformerGameInstance, Error, TEXT("Session index is invalid!"));
+        return;
+    }
+
+    SessionInterface->JoinSession(0, OnlineSessionName, SessionSearchParams->SearchResults[SessionIndex]);
 }
 
 void UPlatformerGameInstance::RequestFindSessions(
@@ -174,6 +195,7 @@ void UPlatformerGameInstance::OnFindSessionsComplete(
     );
 
     if (!SessionSearchParams.IsValid()) {
+        UE_LOG(LogPlatformerGameInstance, Error, TEXT("Session search parameters are invalid!"));
         return;
     }
 
@@ -189,4 +211,35 @@ void UPlatformerGameInstance::OnFindSessionsComplete(
     }
 
     OnSessionsFoundDelegate.Broadcast(SessionSearchParams->SearchResults);
+}
+
+void UPlatformerGameInstance::OnJoinedTravel(
+    FName SessionName,
+    EOnJoinSessionCompleteResult::Type JoinResult
+) {
+    if (!SessionInterface.IsValid()) {
+        UE_LOG(LogPlatformerGameInstance, Error, TEXT("Online session interface is invalid!"));
+        return;
+    }
+
+    FString ConnectionInfo;
+    bool bResult = SessionInterface->GetResolvedConnectString(
+        SessionName,
+        ConnectionInfo
+    );
+
+    if (!bResult) {
+        UE_LOG(LogPlatformerGameInstance, Warning, TEXT("Error joining %s session!"), *SessionName.ToString());
+        return;
+    }
+
+    UE_LOG(LogPlatformerGameInstance, Display, TEXT("Travelling player to %s"), *ConnectionInfo);
+
+    APlayerController *Player = GetFirstLocalPlayerController();
+    if (!Player) {
+        UE_LOG(LogPlatformerGameInstance, Error, TEXT("Unexpected error! Can't join!"));
+        return;
+    }
+
+    Player->ClientTravel(ConnectionInfo, ETravelType::TRAVEL_Absolute);
 }

@@ -4,6 +4,7 @@
 #include "Menu/UI/PlatformerSessionSelectWidget.h"
 
 #include "Components/Button.h"
+#include "OnlineSessionSettings.h"
 #include "PlatformerGameInstance.h"
 
 bool UPlatformerSessionSelectWidget::Initialize(
@@ -21,16 +22,22 @@ bool UPlatformerSessionSelectWidget::Initialize(
     return true;
 }
 
-void UPlatformerSessionSelectWidget::SetSessionIDString(
-    FString const &NewSessionIDString
+void UPlatformerSessionSelectWidget::FillSessionData(
+    FOnlineSession const &Session,
+    int32 SessionIndex
 ) {
-    SessionIDString = NewSessionIDString;
+    SessionData.IDString = Session.GetSessionIdStr();
+    SessionData.Name = TEXT("TEST");
+    SessionData.ActivePlayers = Session.NumOpenPublicConnections;
+    SessionData.MaxPlayers = Session.SessionSettings.NumPublicConnections;
+
+    SessionData.SessionIndex = SessionIndex;
 }
 
-bool UPlatformerSessionSelectWidget::GetSessionIDString(
-    FString &Result
+bool UPlatformerSessionSelectWidget::GetSessionData(
+    FSessionData &Result
 ) const {
-    Result = SessionIDString;
+    Result = SessionData;
     return true;
 }
 
@@ -41,5 +48,5 @@ void UPlatformerSessionSelectWidget::OnSessionButtonClick(
         return;
     }
 
-    GameInstance->JoinGameBySessionID(SessionIDString);
+    GameInstance->RequestJoinSelectedSession(SessionData.SessionIndex);
 }

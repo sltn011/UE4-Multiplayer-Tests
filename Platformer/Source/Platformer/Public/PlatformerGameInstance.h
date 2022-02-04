@@ -8,7 +8,10 @@
 #include "OnlineSessionSettings.h"
 #include "PlatformerGameInstance.generated.h"
 
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnSessionsFound, TArray<FOnlineSessionSearchResult> const &);
+DECLARE_MULTICAST_DELEGATE_OneParam(
+	FOnSessionsFound,
+	TArray<FOnlineSessionSearchResult> const &
+);
 
 UCLASS()
 class PLATFORMER_API UPlatformerGameInstance : public UGameInstance
@@ -29,9 +32,8 @@ public:
 		const FString &HostIP
 	);
 
-	UFUNCTION(Exec)
-	void JoinGameBySessionID(
-		const FString &SessionID
+	void RequestJoinSelectedSession(
+		int32 SessionIndex
 	);
 
 	void RequestFindSessions(
@@ -56,6 +58,11 @@ protected:
 
 	void OnFindSessionsComplete(
 		bool bSuccessful
+	);
+
+	void OnJoinedTravel(
+		FName SessionName,
+		EOnJoinSessionCompleteResult::Type JoinResult
 	);
 
 	FName OnlineSessionName = TEXT("Platformer Game Session");

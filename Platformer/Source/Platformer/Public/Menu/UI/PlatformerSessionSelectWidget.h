@@ -7,6 +7,29 @@
 #include "PlatformerSessionSelectWidget.generated.h"
 
 class UButton;
+class FOnlineSession;
+
+USTRUCT(BlueprintType)
+struct FSessionData 
+{
+	GENERATED_USTRUCT_BODY()
+
+public:
+
+	UPROPERTY(BlueprintReadOnly)
+	FString IDString;
+
+	UPROPERTY(BlueprintReadOnly)
+	FString Name;
+
+	UPROPERTY(BlueprintReadOnly)
+	int32 ActivePlayers;
+
+	UPROPERTY(BlueprintReadOnly)
+	int32 MaxPlayers;
+
+	int32 SessionIndex;
+};
 
 UCLASS()
 class PLATFORMER_API UPlatformerSessionSelectWidget : public UMenuBaseWidget
@@ -18,13 +41,14 @@ public:
 	virtual bool Initialize(
 	) override;
 
-	void SetSessionIDString(
-		FString const &NewSessionIDString
+	void FillSessionData(
+		FOnlineSession const &Session,
+		int32 SessionIndex
 	);
 
 	UFUNCTION(BlueprintCallable)
-	bool GetSessionIDString(
-		FString &Result
+	bool GetSessionData(
+		FSessionData &Result
 	) const;
 
 protected:
@@ -36,5 +60,5 @@ protected:
 	UPROPERTY(meta = (BindWidget))
 	UButton *SessionButton;
 
-	FString SessionIDString;
+	FSessionData SessionData;
 };

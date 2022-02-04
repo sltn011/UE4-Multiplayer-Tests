@@ -74,8 +74,8 @@ void UPlatformerMenuScreenWidget::OnSessionsFound(
     }
 
     AvailableSessions->ClearChildren();
-
     
+    int32 Cnt = 0;
     for (FOnlineSessionSearchResult const &Session : Sessions) {
         if (Session.IsValid()) {
             UPlatformerSessionSelectWidget *SessionSelector =
@@ -84,9 +84,10 @@ void UPlatformerMenuScreenWidget::OnSessionsFound(
                 continue;
             }
 
-            SessionSelector->SetSessionIDString(Session.GetSessionIdStr());
+            SessionSelector->FillSessionData(Session.Session, Cnt);
 
             AvailableSessions->AddChild(SessionSelector);
         }
+        ++Cnt;
     }
 }
