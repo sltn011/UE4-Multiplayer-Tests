@@ -8,6 +8,7 @@
 #include "OnlineSessionSettings.h"
 
 #include "Engine/Engine.h"
+#include "TimerManager.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogPlatformerGameInstance, All, All);
 
@@ -50,7 +51,15 @@ void UPlatformerGameInstance::Init(
             SessionSearchParams = MakeShared<FOnlineSessionSearch>();
             if (SessionSearchParams.IsValid()) {
                 SessionSearchParams->bIsLanQuery = true;
-                RequestFindSessions();
+                GetTimerManager().SetTimer(
+                    ScanForSessionsTimer,
+                    this,
+                    &UPlatformerGameInstance::RequestFindSessions,
+                    10.0f,
+                    true,
+                    1.0f
+                );
+                //RequestFindSessions();
             }
             else {
                 UE_LOG(LogPlatformerGameInstance, Warning, TEXT("Error creating session search parameters!"));
@@ -60,6 +69,19 @@ void UPlatformerGameInstance::Init(
     }
     else {
         UE_LOG(LogPlatformerGameInstance, Error, TEXT("OSS not found!"));
+    }
+}
+
+void UPlatformerGameInstance::Shutdown(
+) {
+    UE_LOG(LogPlatformerGameInstance, Display, TEXT("UPlatformerGameInstance::Shutdown!"));
+
+    bShuttingDown = true;
+
+    FNamedOnlineSession *ExistingSession = SessionInterface->GetNamedSession(OnlineSessionName);
+    if (ExistingSession) {
+        UE_LOG(LogPlatformerGameInstance, Display, TEXT("Destroying session on shutdown!"));
+        SessionInterface->DestroySession(OnlineSessionName);
     }
 }
 
@@ -128,11 +150,13 @@ void UPlatformerGameInstance::RequestJoinSelectedSession(
 
 void UPlatformerGameInstance::RequestFindSessions(
 ) {
+    UE_LOG(LogPlatformerGameInstance, Warning, TEXT("Timer triggered!"));
     if (SessionSearchParams.IsValid()) {
         SessionInterface->FindSessions(0, SessionSearchParams.ToSharedRef());
     }
     else {
         UE_LOG(LogPlatformerGameInstance, Warning, TEXT("Session search parameters are invalid!"));
+        GetTimerManager().ClearTimer(ScanForSessionsTimer);
     }
 }
 
@@ -169,6 +193,8 @@ void UPlatformerGameInstance::OnCreateSessionComplete(
         UE_LOG(LogPlatformerGameInstance, Error, TEXT("Unexpected error! Can't host!"));
     }
 
+    GetTimerManager().ClearTimer(ScanForSessionsTimer);
+
     World->ServerTravel("/Game/Platformer/Maps/GameLevel?listen");
 }
 
@@ -181,7 +207,13 @@ void UPlatformerGameInstance::OnDestroySessionComplete(
         return;
     }
 
-    RequestCreateSession();
+    if (!bShuttingDown) {
+        RequestCreateSession();
+    }
+    else {
+        UE_LOG(LogPlatformerGameInstance, Display, TEXT("UGameInstance::Shutdown!"));
+        Super::Shutdown();
+    }
 }
 
 void UPlatformerGameInstance::OnFindSessionsComplete(
@@ -240,6 +272,8 @@ void UPlatformerGameInstance::OnJoinedTravel(
         UE_LOG(LogPlatformerGameInstance, Error, TEXT("Unexpected error! Can't join!"));
         return;
     }
+
+    GetTimerManager().ClearTimer(ScanForSessionsTimer);
 
     Player->ClientTravel(ConnectionInfo, ETravelType::TRAVEL_Absolute);
 }

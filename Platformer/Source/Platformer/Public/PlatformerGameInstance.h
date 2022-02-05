@@ -23,6 +23,9 @@ public:
 	virtual void Init(
 	) override;
 
+	virtual void Shutdown(
+	) override;
+
 	UFUNCTION(Exec)
 	void HostGame(
 	);
@@ -69,4 +72,8 @@ protected:
 
 	IOnlineSessionPtr SessionInterface;
 	TSharedPtr<FOnlineSessionSearch> SessionSearchParams;
+
+	FTimerHandle ScanForSessionsTimer;
+
+	bool bShuttingDown = false;
 };
