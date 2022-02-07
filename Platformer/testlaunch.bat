@@ -1,1 +1,1 @@
-"D:\Unreal Engine 4\UE_4.26\Engine\Binaries\Win64\UE4Editor.exe" "D:\UE4 Projects\UE4MultiplayerTests\Platformer\Platformer.uproject" -game
+"D:\Unreal Engine 4\UE_4.26\Engine\Binaries\Win64\UE4Editor.exe" "D:\UE4 Projects\UE4MultiplayerTests\Platformer\Platformer.uproject" -game -log

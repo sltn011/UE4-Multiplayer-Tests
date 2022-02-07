@@ -16,7 +16,7 @@ void UPlatformerGameInstance::Init(
 ) {
     Super::Init();
 
-    IOnlineSubsystem *OSS = IOnlineSubsystem::Get(FName{ TEXT("NULL") });
+    IOnlineSubsystem *OSS = IOnlineSubsystem::Get();
     if (OSS) {
         UE_LOG(LogPlatformerGameInstance, Display, TEXT("Found OSS %s!"), *OSS->GetSubsystemName().ToString());
 
@@ -50,7 +50,10 @@ void UPlatformerGameInstance::Init(
 
             SessionSearchParams = MakeShared<FOnlineSessionSearch>();
             if (SessionSearchParams.IsValid()) {
-                SessionSearchParams->bIsLanQuery = true;
+                SessionSearchParams->bIsLanQuery = false;
+                SessionSearchParams->MaxSearchResults = 100;
+                SessionSearchParams->QuerySettings.Set(SEARCH_PRESENCE, true, EOnlineComparisonOp::Equals);
+
                 GetTimerManager().SetTimer(
                     ScanForSessionsTimer,
                     this,
@@ -74,13 +77,10 @@ void UPlatformerGameInstance::Init(
 
 void UPlatformerGameInstance::Shutdown(
 ) {
-    UE_LOG(LogPlatformerGameInstance, Display, TEXT("UPlatformerGameInstance::Shutdown!"));
-
     bShuttingDown = true;
 
     FNamedOnlineSession *ExistingSession = SessionInterface->GetNamedSession(OnlineSessionName);
     if (ExistingSession) {
-        UE_LOG(LogPlatformerGameInstance, Display, TEXT("Destroying session on shutdown!"));
         SessionInterface->DestroySession(OnlineSessionName);
     }
 }
@@ -150,7 +150,6 @@ void UPlatformerGameInstance::RequestJoinSelectedSession(
 
 void UPlatformerGameInstance::RequestFindSessions(
 ) {
-    UE_LOG(LogPlatformerGameInstance, Warning, TEXT("Timer triggered!"));
     if (SessionSearchParams.IsValid()) {
         SessionInterface->FindSessions(0, SessionSearchParams.ToSharedRef());
     }
@@ -168,9 +167,12 @@ void UPlatformerGameInstance::RequestCreateSession(
     }
 
     FOnlineSessionSettings SessionSettings;
-    SessionSettings.bIsLANMatch = true;
+    SessionSettings.bIsLANMatch = false;
     SessionSettings.NumPublicConnections = 2;
     SessionSettings.bShouldAdvertise = true;
+    SessionSettings.bUsesPresence = true;
+    // SessionSettings.bUseLobbiesIfAvailable = true; for >= 4.27 
+
     SessionInterface->CreateSession(0, OnlineSessionName, SessionSettings);
 }
 
@@ -211,7 +213,6 @@ void UPlatformerGameInstance::OnDestroySessionComplete(
         RequestCreateSession();
     }
     else {
-        UE_LOG(LogPlatformerGameInstance, Display, TEXT("UGameInstance::Shutdown!"));
         Super::Shutdown();
     }
 }

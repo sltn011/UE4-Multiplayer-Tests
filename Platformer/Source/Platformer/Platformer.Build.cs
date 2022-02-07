@@ -16,7 +16,8 @@ public class Platformer : ModuleRules
 				"InputCore",
 				"HeadMountedDisplay",
 				"UMG",
-				"OnlineSubsystem"
+				"OnlineSubsystem",
+				"OnlineSubsystemSteam"
 			}
 		);
 	}
