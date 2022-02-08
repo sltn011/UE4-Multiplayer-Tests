@@ -76,4 +76,6 @@ protected:
 	FTimerHandle ScanForSessionsTimer;
 
 	bool bShuttingDown = false;
+
+	bool bLanGame = true;
 };

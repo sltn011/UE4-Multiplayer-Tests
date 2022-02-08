@@ -20,6 +20,8 @@ void UPlatformerGameInstance::Init(
     if (OSS) {
         UE_LOG(LogPlatformerGameInstance, Display, TEXT("Found OSS %s!"), *OSS->GetSubsystemName().ToString());
 
+        bLanGame = *OSS->GetSubsystemName().ToString() == FString{ TEXT("NULL") };
+
         SessionInterface = OSS->GetSessionInterface();
         if (SessionInterface) {
             UE_LOG(LogPlatformerGameInstance, Display, TEXT("Session Interface found!"));
@@ -50,7 +52,7 @@ void UPlatformerGameInstance::Init(
 
             SessionSearchParams = MakeShared<FOnlineSessionSearch>();
             if (SessionSearchParams.IsValid()) {
-                SessionSearchParams->bIsLanQuery = false;
+                SessionSearchParams->bIsLanQuery = bLanGame;
                 SessionSearchParams->MaxSearchResults = 100;
                 SessionSearchParams->QuerySettings.Set(SEARCH_PRESENCE, true, EOnlineComparisonOp::Equals);
 
@@ -167,7 +169,7 @@ void UPlatformerGameInstance::RequestCreateSession(
     }
 
     FOnlineSessionSettings SessionSettings;
-    SessionSettings.bIsLANMatch = false;
+    SessionSettings.bIsLANMatch = bLanGame;
     SessionSettings.NumPublicConnections = 2;
     SessionSettings.bShouldAdvertise = true;
     SessionSettings.bUsesPresence = true;

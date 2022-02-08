@@ -23,7 +23,10 @@ public:
 	FString Name;
 
 	UPROPERTY(BlueprintReadOnly)
-	int32 ActivePlayers;
+	FString HostName;
+
+	UPROPERTY(BlueprintReadOnly)
+	int32 OpenPlayerSlots;
 
 	UPROPERTY(BlueprintReadOnly)
 	int32 MaxPlayers;

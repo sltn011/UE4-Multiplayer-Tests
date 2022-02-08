@@ -28,7 +28,8 @@ void UPlatformerSessionSelectWidget::FillSessionData(
 ) {
     SessionData.IDString = Session.GetSessionIdStr();
     SessionData.Name = TEXT("TEST");
-    SessionData.ActivePlayers = Session.NumOpenPublicConnections;
+    SessionData.HostName = Session.OwningUserName;
+    SessionData.OpenPlayerSlots = Session.SessionSettings.NumPublicConnections - Session.NumOpenPublicConnections;
     SessionData.MaxPlayers = Session.SessionSettings.NumPublicConnections;
 
     SessionData.SessionIndex = SessionIndex;
