@@ -28,6 +28,7 @@ public:
 
 	UFUNCTION(Exec)
 	void HostGame(
+		const FString &SessionName
 	);
 
 	UFUNCTION(Exec)
@@ -68,7 +69,8 @@ protected:
 		EOnJoinSessionCompleteResult::Type JoinResult
 	);
 
-	FName OnlineSessionName = TEXT("Platformer Game Session");
+	FName DefaultOnlineSessionName = TEXT("Platformer Game Session");
+	FName OnlineSessionName;
 
 	IOnlineSessionPtr SessionInterface;
 	TSharedPtr<FOnlineSessionSearch> SessionSearchParams;

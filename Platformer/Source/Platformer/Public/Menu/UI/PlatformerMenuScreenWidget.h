@@ -7,6 +7,7 @@
 #include "PlatformerMenuScreenWidget.generated.h"
 
 class FOnlineSessionSearchResult;
+class UEditableText;
 class UPlatformerSessionSelectWidget;
 class UScrollBox;
 
@@ -37,5 +38,8 @@ protected:
 
 	UPROPERTY(meta = (BindWidget))
 	UScrollBox *AvailableSessions;
+
+	UPROPERTY(Meta = (BindWidget))
+	UEditableText *CustomSessionName;
 
 };

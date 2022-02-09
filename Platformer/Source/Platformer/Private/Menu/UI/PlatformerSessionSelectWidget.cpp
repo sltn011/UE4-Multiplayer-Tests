@@ -26,8 +26,11 @@ void UPlatformerSessionSelectWidget::FillSessionData(
     FOnlineSession const &Session,
     int32 SessionIndex
 ) {
+    FString SessionName;
+    bool bSessionNameValid = Session.SessionSettings.Get(FName{ TEXT("PLATFORMER_SESSION_NAME") }, SessionName);
+
     SessionData.IDString = Session.GetSessionIdStr();
-    SessionData.Name = TEXT("TEST");
+    SessionData.Name = bSessionNameValid ? SessionName : TEXT("Unknown session");
     SessionData.HostName = Session.OwningUserName;
     SessionData.OpenPlayerSlots = Session.SessionSettings.NumPublicConnections - Session.NumOpenPublicConnections;
     SessionData.MaxPlayers = Session.SessionSettings.NumPublicConnections;

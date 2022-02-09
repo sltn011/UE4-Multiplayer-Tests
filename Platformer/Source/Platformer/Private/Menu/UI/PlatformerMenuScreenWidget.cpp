@@ -40,7 +40,12 @@ void UPlatformerMenuScreenWidget::OnHostButtonClicked(
         UE_LOG(LogPlatformerMenuScreen, Warning, TEXT("Error accessing game instance!"));
     }
 
-    GameInstance->HostGame();
+    FString SessionName;
+    if (CustomSessionName) {
+        SessionName = CustomSessionName->GetText().ToString();
+    }
+
+    GameInstance->HostGame(SessionName);
 }
 
 void UPlatformerMenuScreenWidget::OnJoinByIPButtonClicked(

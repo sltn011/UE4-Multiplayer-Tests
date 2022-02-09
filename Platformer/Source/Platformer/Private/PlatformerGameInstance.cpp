@@ -88,12 +88,20 @@ void UPlatformerGameInstance::Shutdown(
 }
 
 void UPlatformerGameInstance::HostGame(
+    const FString &SessionName
 ) {
     UE_LOG(LogPlatformerGameInstance, Display, TEXT("Hosting a game!"));
 
     if (!SessionInterface.IsValid()) {
         UE_LOG(LogPlatformerGameInstance, Error, TEXT("Online session interface is invalid!"));
         return;
+    }
+
+    if (!SessionName.IsEmpty()) {
+        OnlineSessionName = FName{ SessionName };
+    }
+    else {
+        OnlineSessionName = DefaultOnlineSessionName;
     }
 
     // Check if session already exists
@@ -173,7 +181,12 @@ void UPlatformerGameInstance::RequestCreateSession(
     SessionSettings.NumPublicConnections = 2;
     SessionSettings.bShouldAdvertise = true;
     SessionSettings.bUsesPresence = true;
-    // SessionSettings.bUseLobbiesIfAvailable = true; for >= 4.27 
+    // SessionSettings.bUseLobbiesIfAvailable = true; for >= 4.27
+    SessionSettings.Set(
+        FName{ TEXT("PLATFORMER_SESSION_NAME") },
+        OnlineSessionName.ToString(),
+        EOnlineDataAdvertisementType::Type::ViaOnlineServiceAndPing
+    );
 
     SessionInterface->CreateSession(0, OnlineSessionName, SessionSettings);
 }
