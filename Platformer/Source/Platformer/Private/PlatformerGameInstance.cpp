@@ -212,7 +212,7 @@ void UPlatformerGameInstance::OnCreateSessionComplete(
 
     GetTimerManager().ClearTimer(ScanForSessionsTimer);
 
-    World->ServerTravel("/Game/Platformer/Maps/GameLevel?listen");
+    World->ServerTravel("/Game/Platformer/Maps/Lobby?listen");
 }
 
 void UPlatformerGameInstance::OnDestroySessionComplete(
