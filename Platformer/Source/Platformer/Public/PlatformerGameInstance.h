@@ -6,6 +6,7 @@
 #include "Engine/GameInstance.h"
 #include "Interfaces/OnlineSessionInterface.h"
 #include "OnlineSessionSettings.h"
+#include "UObject/UnrealNames.h"
 #include "PlatformerGameInstance.generated.h"
 
 DECLARE_MULTICAST_DELEGATE_OneParam(
@@ -69,8 +70,8 @@ protected:
 		EOnJoinSessionCompleteResult::Type JoinResult
 	);
 
-	FName DefaultOnlineSessionName = TEXT("Platformer Game Session");
-	FName OnlineSessionName;
+	FName DefaultOnlineSessionName = NAME_GameSession; // Name used to create and find session
+	FName SpecifiedOnlineSessionName; // Name to be set in session settings with Set
 
 	IOnlineSessionPtr SessionInterface;
 	TSharedPtr<FOnlineSessionSearch> SessionSearchParams;

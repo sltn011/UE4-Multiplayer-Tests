@@ -81,9 +81,9 @@ void UPlatformerGameInstance::Shutdown(
 ) {
     bShuttingDown = true;
 
-    FNamedOnlineSession *ExistingSession = SessionInterface->GetNamedSession(OnlineSessionName);
+    FNamedOnlineSession *ExistingSession = SessionInterface->GetNamedSession(DefaultOnlineSessionName);
     if (ExistingSession) {
-        SessionInterface->DestroySession(OnlineSessionName);
+        SessionInterface->DestroySession(DefaultOnlineSessionName);
     }
 }
 
@@ -98,16 +98,16 @@ void UPlatformerGameInstance::HostGame(
     }
 
     if (!SessionName.IsEmpty()) {
-        OnlineSessionName = FName{ SessionName };
+        SpecifiedOnlineSessionName = FName{ SessionName };
     }
     else {
-        OnlineSessionName = DefaultOnlineSessionName;
+        SpecifiedOnlineSessionName = DefaultOnlineSessionName;
     }
 
     // Check if session already exists
-    FNamedOnlineSession *ExistingSession = SessionInterface->GetNamedSession(OnlineSessionName);
+    FNamedOnlineSession *ExistingSession = SessionInterface->GetNamedSession(DefaultOnlineSessionName);
     if (ExistingSession) {
-        SessionInterface->DestroySession(OnlineSessionName);
+        SessionInterface->DestroySession(DefaultOnlineSessionName);
     }
     else {
         RequestCreateSession();
@@ -155,7 +155,7 @@ void UPlatformerGameInstance::RequestJoinSelectedSession(
         return;
     }
 
-    SessionInterface->JoinSession(0, OnlineSessionName, SessionSearchParams->SearchResults[SessionIndex]);
+    SessionInterface->JoinSession(0, DefaultOnlineSessionName, SessionSearchParams->SearchResults[SessionIndex]);
 }
 
 void UPlatformerGameInstance::RequestFindSessions(
@@ -184,11 +184,11 @@ void UPlatformerGameInstance::RequestCreateSession(
     // SessionSettings.bUseLobbiesIfAvailable = true; for >= 4.27
     SessionSettings.Set(
         FName{ TEXT("PLATFORMER_SESSION_NAME") },
-        OnlineSessionName.ToString(),
+        SpecifiedOnlineSessionName.ToString(),
         EOnlineDataAdvertisementType::Type::ViaOnlineServiceAndPing
     );
 
-    SessionInterface->CreateSession(0, OnlineSessionName, SessionSettings);
+    SessionInterface->CreateSession(0, DefaultOnlineSessionName, SessionSettings);
 }
 
 void UPlatformerGameInstance::OnCreateSessionComplete(
