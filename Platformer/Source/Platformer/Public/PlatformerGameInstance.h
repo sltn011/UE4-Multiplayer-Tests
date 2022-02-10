@@ -70,6 +70,13 @@ protected:
 		EOnJoinSessionCompleteResult::Type JoinResult
 	);
 
+	void OnNetworkFailure(
+		UWorld *World,
+		UNetDriver *NetDriver,
+		ENetworkFailure::Type Failure,
+		const FString &Info
+	);
+
 	FName DefaultOnlineSessionName = NAME_GameSession; // Name used to create and find session
 	FName SpecifiedOnlineSessionName; // Name to be set in session settings with Set
 

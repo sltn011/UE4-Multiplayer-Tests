@@ -70,6 +70,9 @@ void UPlatformerGameInstance::Init(
                 UE_LOG(LogPlatformerGameInstance, Warning, TEXT("Error creating session search parameters!"));
             }
             
+            if (GEngine) {
+                GEngine->OnNetworkFailure().AddUObject(this, &UPlatformerGameInstance::OnNetworkFailure);
+            }
         }
     }
     else {
@@ -292,4 +295,36 @@ void UPlatformerGameInstance::OnJoinedTravel(
     GetTimerManager().ClearTimer(ScanForSessionsTimer);
 
     Player->ClientTravel(ConnectionInfo, ETravelType::TRAVEL_Absolute);
+}
+
+void UPlatformerGameInstance::OnNetworkFailure(
+    UWorld *World,
+    UNetDriver *NetDriver,
+    ENetworkFailure::Type Failure,
+    const FString &Info
+) {
+    UE_LOG(
+        LogPlatformerGameInstance,
+        Error,
+        TEXT("Network error occured! %s!"),
+        *Info
+    );
+
+    if (GEngine) {
+        GEngine->AddOnScreenDebugMessage(
+            -1, 5.0f, FColor::Red,
+            FString::Printf(
+                TEXT("Network failure! %s! "),
+                *Info
+            )
+        );
+    }
+
+    APlayerController *Player = GetFirstLocalPlayerController();
+    if (!Player) {
+        UE_LOG(LogPlatformerGameInstance, Error, TEXT("Unexpected error!"));
+        return;
+    }
+
+    Player->ClientTravel("/Game/Platformer/Maps/Menu", ETravelType::TRAVEL_Absolute);
 }
