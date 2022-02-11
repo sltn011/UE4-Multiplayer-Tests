@@ -45,6 +45,12 @@ protected:
 	FVector GetResistance(
 	);
 
+	FVector GetAirResistance(
+	);
+
+	FVector GetRollingResistance(
+	);
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	UBoxComponent *BoxCollision;
 
@@ -70,6 +76,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (ClampMin = 0.0f))
 	float DragCoefficient = 15.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (ClampMin = 0.0f))
+	float RollResistCoefficient = 0.1f;
 
 	float Throttle = 0.0f;
 	FVector Velocity = FVector::ZeroVector;

@@ -6,6 +6,7 @@
 #include "Camera/CameraComponent.h"
 #include "Components/BoxComponent.h"
 #include "Components/SkeletalMeshComponent.h"
+#include "Engine/World.h"
 #include "GameFramework/SpringArmComponent.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogRacingCar, All, All);
@@ -73,7 +74,20 @@ void ARacingCar::UpdateRotation(
 
 FVector ARacingCar::GetResistance(
 ) {
+	return GetAirResistance() + GetRollingResistance();
+}
+
+FVector ARacingCar::GetAirResistance(
+) {
 	return Velocity.GetSafeNormal() * Velocity.SizeSquared() * DragCoefficient;
+}
+
+FVector ARacingCar::GetRollingResistance(
+) {
+	UWorld *World = GetWorld();
+	float GravityAcceleration = World ? -World->GetGravityZ() / 100.0f : 9.81f;
+	float WeightForce = CarMass * GravityAcceleration;
+	return Velocity.GetSafeNormal() * WeightForce * RollResistCoefficient;
 }
 
 void ARacingCar::Tick(
