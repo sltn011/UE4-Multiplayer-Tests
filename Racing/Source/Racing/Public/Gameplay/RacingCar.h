@@ -30,6 +30,21 @@ protected:
 		float Value
 	);
 
+	virtual void Turn(
+		float Value
+	);
+
+	void UpdateLocationWithVelocity(
+		float DeltaTime
+	);
+
+	void UpdateRotation(
+		float DeltaTime
+	);
+
+	FVector GetResistance(
+	);
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	UBoxComponent *BoxCollision;
 
@@ -50,8 +65,15 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (ClampMin = 0.0f))
 	float MaxDrivingForce = 10000.0f;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (ClampMin = 0.0f))
+	float RotationSpeed = 100.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (ClampMin = 0.0f))
+	float DragCoefficient = 15.0f;
+
 	float Throttle = 0.0f;
 	FVector Velocity = FVector::ZeroVector;
+	float RotationValue = 0.0f;
 
 public:	
 

@@ -42,16 +42,15 @@ void ARacingCar::MoveForward(
 	Throttle = Value;
 }
 
-void ARacingCar::Tick(
+void ARacingCar::Turn(
+	float Value
+) {
+	RotationValue = Value;
+}
+
+void ARacingCar::UpdateLocationWithVelocity(
 	float DeltaTime
 ) {
-	Super::Tick(DeltaTime);
-
-	FVector Force = GetActorForwardVector() * MaxDrivingForce * Throttle;
-	FVector Acceleration = Force / CarMass;
-
-	Velocity += Acceleration * DeltaTime;
-
 	FVector Translation = Velocity * 100 * DeltaTime;
 
 	FHitResult HitResult;
@@ -61,6 +60,37 @@ void ARacingCar::Tick(
 	}
 }
 
+void ARacingCar::UpdateRotation(
+	float DeltaTime
+) {
+	float Rotation = RotationValue * RotationSpeed * DeltaTime;
+	FQuat RotationQuat{ GetActorUpVector(), FMath::DegreesToRadians(Rotation) };
+
+	Velocity = RotationQuat * Velocity;
+
+	AddActorWorldRotation(RotationQuat);
+}
+
+FVector ARacingCar::GetResistance(
+) {
+	return Velocity.GetSafeNormal() * Velocity.SizeSquared() * DragCoefficient;
+}
+
+void ARacingCar::Tick(
+	float DeltaTime
+) {
+	Super::Tick(DeltaTime);
+
+	FVector Force = GetActorForwardVector() * MaxDrivingForce * Throttle;
+	Force -= GetResistance();
+	FVector Acceleration = Force / CarMass;
+
+	Velocity += Acceleration * DeltaTime;
+
+	UpdateLocationWithVelocity(DeltaTime);
+	UpdateRotation(DeltaTime);
+}
+
 void ARacingCar::SetupPlayerInputComponent(
 	UInputComponent* PlayerInputComponent
 ) {
@@ -68,6 +98,7 @@ void ARacingCar::SetupPlayerInputComponent(
 
 	if (PlayerInputComponent) {
 		PlayerInputComponent->BindAxis("MoveForward", this, &ARacingCar::MoveForward);
+		PlayerInputComponent->BindAxis("MoveRight", this, &ARacingCar::Turn);
 	}
 }
 
