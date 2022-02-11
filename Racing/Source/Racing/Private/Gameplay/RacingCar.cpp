@@ -31,8 +31,7 @@ void ARacingCar::BeginPlay(
 void ARacingCar::MoveForward(
 	float Value
 ) {
-	//AddMovementInput(GetActorForwardVector(), Value * CarSpeed);
-	Velocity = GetActorForwardVector() * Value * CarSpeed;
+	Throttle = Value;
 }
 
 void ARacingCar::Tick(
@@ -40,7 +39,14 @@ void ARacingCar::Tick(
 ) {
 	Super::Tick(DeltaTime);
 
-	AddActorWorldOffset(Velocity * DeltaTime);
+	FVector Force = GetActorForwardVector() * MaxDrivingForce * Throttle;
+	FVector Acceleration = Force / CarMass;
+
+	Velocity += Acceleration * DeltaTime;
+
+	FVector Translation = Velocity * 100 * DeltaTime;
+
+	AddActorWorldOffset(Translation);
 }
 
 void ARacingCar::SetupPlayerInputComponent(

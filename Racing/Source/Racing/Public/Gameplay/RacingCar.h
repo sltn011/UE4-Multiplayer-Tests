@@ -38,10 +38,16 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	UCameraComponent *Camera;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (ClampMin = 0.0f))
-	float CarSpeed;
 
-	FVector Velocity;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (ClampMin = 0.0f))
+	float CarMass = 1000.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (ClampMin = 0.0f))
+	float MaxDrivingForce = 10000.0f;
+
+	float Throttle = 0.0f;
+	FVector Velocity = FVector::ZeroVector;
 
 public:	
 
