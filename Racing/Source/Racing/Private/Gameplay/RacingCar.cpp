@@ -4,18 +4,26 @@
 #include "Gameplay/RacingCar.h"
 
 #include "Camera/CameraComponent.h"
+#include "Components/BoxComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+
+DEFINE_LOG_CATEGORY_STATIC(LogRacingCar, All, All);
 
 ARacingCar::ARacingCar(
 ) {
  	PrimaryActorTick.bCanEverTick = true;
 
+	BoxCollision = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxCollision"));
+	BoxCollision->SetBoxExtent(FVector{ 230.0f, 100.0f, 65.0f });
+	SetRootComponent(BoxCollision);
+
 	Mesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Mesh"));
-	SetRootComponent(Mesh);
+	Mesh->AddRelativeLocation(FVector{ -5.0f, 0.0f, -85.0f });
+	Mesh->SetupAttachment(GetRootComponent());
 
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
-	SpringArm->AddRelativeLocation(FVector{ -175.0f, 0.0f, 165.0f });
+	SpringArm->AddRelativeLocation(FVector{ -210.0f, 0.0f, 155.0f });
 	SpringArm->AddRelativeRotation(FRotator{ -20.0f, 0.0f, 0.0f });
 	SpringArm->SetupAttachment(Mesh);
 
@@ -46,7 +54,11 @@ void ARacingCar::Tick(
 
 	FVector Translation = Velocity * 100 * DeltaTime;
 
-	AddActorWorldOffset(Translation);
+	FHitResult HitResult;
+	AddActorWorldOffset(Translation, true, &HitResult);
+	if (HitResult.IsValidBlockingHit()) {
+		Velocity = FVector::ZeroVector;
+	}
 }
 
 void ARacingCar::SetupPlayerInputComponent(
@@ -54,6 +66,8 @@ void ARacingCar::SetupPlayerInputComponent(
 ) {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
-	PlayerInputComponent->BindAxis("MoveForward", this, &ARacingCar::MoveForward);
+	if (PlayerInputComponent) {
+		PlayerInputComponent->BindAxis("MoveForward", this, &ARacingCar::MoveForward);
+	}
 }
 

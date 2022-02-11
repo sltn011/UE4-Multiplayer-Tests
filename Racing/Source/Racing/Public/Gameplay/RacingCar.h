@@ -6,6 +6,7 @@
 #include "GameFramework/Pawn.h"
 #include "RacingCar.generated.h"
 
+class UBoxComponent;
 class UCameraComponent;
 class USkeletalMeshComponent;
 class USpringArmComponent;
@@ -28,6 +29,9 @@ protected:
 	virtual void MoveForward(
 		float Value
 	);
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	UBoxComponent *BoxCollision;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	USkeletalMeshComponent *Mesh;
