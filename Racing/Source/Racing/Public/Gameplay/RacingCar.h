@@ -72,7 +72,7 @@ protected:
 	float MaxDrivingForce = 10000.0f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (ClampMin = 0.0f))
-	float RotationSpeed = 100.0f;
+	float TurningCircleRadius = 10.0f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (ClampMin = 0.0f))
 	float DragCoefficient = 15.0f;
@@ -82,7 +82,7 @@ protected:
 
 	float Throttle = 0.0f;
 	FVector Velocity = FVector::ZeroVector;
-	float RotationValue = 0.0f;
+	float RotationDirection = 0.0f;
 
 public:	
 

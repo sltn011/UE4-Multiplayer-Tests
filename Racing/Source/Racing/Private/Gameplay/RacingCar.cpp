@@ -16,16 +16,16 @@ ARacingCar::ARacingCar(
  	PrimaryActorTick.bCanEverTick = true;
 
 	BoxCollision = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxCollision"));
-	BoxCollision->SetBoxExtent(FVector{ 230.0f, 100.0f, 65.0f });
+	BoxCollision->SetBoxExtent(FVector{ 230.0f, 100.0f, 120.0f });
 	SetRootComponent(BoxCollision);
 
 	Mesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Mesh"));
-	Mesh->AddRelativeLocation(FVector{ -5.0f, 0.0f, -85.0f });
+	Mesh->SetRelativeLocation(FVector{ -5.0f, 0.0f, -150.0f });
 	Mesh->SetupAttachment(GetRootComponent());
 
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
-	SpringArm->AddRelativeLocation(FVector{ -210.0f, 0.0f, 155.0f });
-	SpringArm->AddRelativeRotation(FRotator{ -20.0f, 0.0f, 0.0f });
+	SpringArm->SetRelativeLocation(FVector{ -210.0f, 0.0f, 155.0f });
+	SpringArm->SetRelativeRotation(FRotator{ -20.0f, 0.0f, 0.0f });
 	SpringArm->SetupAttachment(Mesh);
 
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
@@ -46,7 +46,7 @@ void ARacingCar::MoveForward(
 void ARacingCar::Turn(
 	float Value
 ) {
-	RotationValue = Value;
+	RotationDirection = Value * FMath::Sign(FVector::DotProduct(Velocity, GetActorForwardVector()));
 }
 
 void ARacingCar::UpdateLocationWithVelocity(
@@ -64,8 +64,11 @@ void ARacingCar::UpdateLocationWithVelocity(
 void ARacingCar::UpdateRotation(
 	float DeltaTime
 ) {
-	float Rotation = RotationValue * RotationSpeed * DeltaTime;
-	FQuat RotationQuat{ GetActorUpVector(), FMath::DegreesToRadians(Rotation) };
+	// dx = dTheta * r
+
+	float DeltaLocation = Velocity.Size() * DeltaTime;
+	float RotationAngle = (DeltaLocation / TurningCircleRadius) * RotationDirection; // in radians
+	FQuat RotationQuat{ GetActorUpVector(), RotationAngle };
 
 	Velocity = RotationQuat * Velocity;
 
