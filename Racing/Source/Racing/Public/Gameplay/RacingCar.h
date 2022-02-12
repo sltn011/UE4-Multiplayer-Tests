@@ -26,11 +26,21 @@ protected:
 	virtual void BeginPlay(
 	) override;
 
-	virtual void MoveForward(
+	void MoveForward(
 		float Value
 	);
 
-	virtual void Turn(
+	void MoveRight(
+		float Value
+	);
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_MoveForward(
+		float Value
+	);
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_MoveRight(
 		float Value
 	);
 
@@ -50,6 +60,8 @@ protected:
 
 	FVector GetRollingResistance(
 	);
+
+
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	UBoxComponent *BoxCollision;

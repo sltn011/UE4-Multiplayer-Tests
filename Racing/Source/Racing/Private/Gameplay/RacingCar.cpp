@@ -9,6 +9,8 @@
 #include "Engine/World.h"
 #include "GameFramework/SpringArmComponent.h"
 
+#include "DrawDebugHelpers.h"
+
 DEFINE_LOG_CATEGORY_STATIC(LogRacingCar, All, All);
 
 ARacingCar::ARacingCar(
@@ -41,12 +43,38 @@ void ARacingCar::MoveForward(
 	float Value
 ) {
 	Throttle = Value;
+	Server_MoveForward(Value);
 }
 
-void ARacingCar::Turn(
+void ARacingCar::MoveRight(
 	float Value
 ) {
 	RotationDirection = Value * FMath::Sign(FVector::DotProduct(Velocity, GetActorForwardVector()));
+	Server_MoveRight(Value);
+}
+
+void ARacingCar::Server_MoveForward_Implementation(
+	float Value
+) {
+	Throttle = Value;
+}
+
+bool ARacingCar::Server_MoveForward_Validate(
+	float Value
+) {
+	return FMath::Abs(Value) <= 1.0f;
+}
+
+void ARacingCar::Server_MoveRight_Implementation(
+	float Value
+) {
+	RotationDirection = Value * FMath::Sign(FVector::DotProduct(Velocity, GetActorForwardVector()));
+}
+
+bool ARacingCar::Server_MoveRight_Validate(
+	float Value
+) {
+	return FMath::Abs(Value) <= 1.0f;
 }
 
 void ARacingCar::UpdateLocationWithVelocity(
@@ -106,6 +134,36 @@ void ARacingCar::Tick(
 
 	UpdateLocationWithVelocity(DeltaTime);
 	UpdateRotation(DeltaTime);
+
+
+	// Debug helper
+	FString RoleString;
+	switch (GetLocalRole()) {
+	case ROLE_Authority:
+		RoleString = TEXT("Authority");
+		break;
+
+	case ROLE_AutonomousProxy:
+		RoleString = TEXT("AutonomousProxy");
+		break;
+
+	case ROLE_SimulatedProxy:
+		RoleString = TEXT("SimulatedProxy");
+		break;
+
+	default:
+		RoleString = TEXT("UnknownRole");
+		break;
+	}
+
+	DrawDebugString(
+		GetWorld(),
+		FVector{ 0.0f, 0.0f, 100.0f },
+		RoleString,
+		this,
+		FColor::White,
+		DeltaTime
+	);
 }
 
 void ARacingCar::SetupPlayerInputComponent(
@@ -115,7 +173,7 @@ void ARacingCar::SetupPlayerInputComponent(
 
 	if (PlayerInputComponent) {
 		PlayerInputComponent->BindAxis("MoveForward", this, &ARacingCar::MoveForward);
-		PlayerInputComponent->BindAxis("MoveRight", this, &ARacingCar::Turn);
+		PlayerInputComponent->BindAxis("MoveRight", this, &ARacingCar::MoveRight);
 	}
 }
 
