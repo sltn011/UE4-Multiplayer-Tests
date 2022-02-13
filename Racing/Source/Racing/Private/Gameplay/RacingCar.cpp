@@ -3,12 +3,17 @@
 
 #include "Gameplay/RacingCar.h"
 
+// Common
 #include "Camera/CameraComponent.h"
 #include "Components/BoxComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Engine/World.h"
 #include "GameFramework/SpringArmComponent.h"
 
+// Network
+#include "Net/UnrealNetwork.h"
+
+// Helpers
 #include "DrawDebugHelpers.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogRacingCar, All, All);
@@ -16,6 +21,8 @@ DEFINE_LOG_CATEGORY_STATIC(LogRacingCar, All, All);
 ARacingCar::ARacingCar(
 ) {
  	PrimaryActorTick.bCanEverTick = true;
+	
+	bReplicates = true;
 
 	BoxCollision = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxCollision"));
 	BoxCollision->SetBoxExtent(FVector{ 230.0f, 100.0f, 120.0f });
@@ -126,6 +133,7 @@ void ARacingCar::Tick(
 ) {
 	Super::Tick(DeltaTime);
 
+	/*
 	FVector Force = GetActorForwardVector() * MaxDrivingForce * Throttle;
 	Force -= GetResistance();
 	FVector Acceleration = Force / CarMass;
@@ -134,7 +142,25 @@ void ARacingCar::Tick(
 
 	UpdateLocationWithVelocity(DeltaTime);
 	UpdateRotation(DeltaTime);
+	*/
 
+	if (HasAuthority()) {
+		FVector Force = GetActorForwardVector() * MaxDrivingForce * Throttle;
+		Force -= GetResistance();
+		FVector Acceleration = Force / CarMass;
+
+		Velocity += Acceleration * DeltaTime;
+
+		UpdateLocationWithVelocity(DeltaTime);
+		UpdateRotation(DeltaTime);
+
+		ReplicatedLocation = GetActorLocation();
+		ReplicatedRotation = GetActorRotation();
+	}
+	else {
+		SetActorLocation(ReplicatedLocation);
+		SetActorRotation(ReplicatedRotation);
+	}
 
 	// Debug helper
 	FString RoleString;
@@ -177,3 +203,13 @@ void ARacingCar::SetupPlayerInputComponent(
 	}
 }
 
+// Setup property replication to receive updates for replicated values from server
+void ARacingCar::GetLifetimeReplicatedProps(
+	TArray< FLifetimeProperty > &OutLifetimeProps
+) const {
+
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(ARacingCar, ReplicatedLocation);
+	DOREPLIFETIME(ARacingCar, ReplicatedRotation);
+}

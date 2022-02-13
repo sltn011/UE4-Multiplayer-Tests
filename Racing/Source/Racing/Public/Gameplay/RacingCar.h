@@ -96,6 +96,14 @@ protected:
 	FVector Velocity = FVector::ZeroVector;
 	float RotationDirection = 0.0f;
 
+
+
+	UPROPERTY(Replicated)
+	FVector ReplicatedLocation;
+
+	UPROPERTY(Replicated)
+	FRotator ReplicatedRotation;
+
 public:	
 
 	virtual void Tick(
