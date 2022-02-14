@@ -92,8 +92,15 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (ClampMin = 0.0f))
 	float RollResistCoefficient = 0.1f;
 
-	float Throttle = 0.0f;
+
+
+	UPROPERTY(Replicated)
 	FVector Velocity = FVector::ZeroVector;
+
+	UPROPERTY(Replicated)
+	float Throttle = 0.0f;
+
+	UPROPERTY(Replicated)
 	float RotationDirection = 0.0f;
 
 

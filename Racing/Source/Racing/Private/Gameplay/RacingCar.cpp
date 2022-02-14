@@ -204,4 +204,7 @@ void ARacingCar::GetLifetimeReplicatedProps(
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(ARacingCar, ReplicatedTransform);
+	DOREPLIFETIME(ARacingCar, Velocity);
+	DOREPLIFETIME(ARacingCar, Throttle);
+	DOREPLIFETIME(ARacingCar, RotationDirection);
 }
