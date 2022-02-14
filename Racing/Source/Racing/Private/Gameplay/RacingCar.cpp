@@ -45,9 +45,9 @@ void ARacingCar::BeginPlay(
 ) {
 	Super::BeginPlay();
 
-	//if (HasAuthority()) {
-	//	NetUpdateFrequency = 1.0f;
-	//}
+	if (HasAuthority()) {
+		NetUpdateFrequency = 1.0f;
+	}
 }
 
 void ARacingCar::MoveForward(
@@ -142,22 +142,18 @@ void ARacingCar::Tick(
 ) {
 	Super::Tick(DeltaTime);
 
+	FVector Force = GetActorForwardVector() * MaxDrivingForce * Throttle;
+	Force -= GetResistance();
+	FVector Acceleration = Force / CarMass;
+
+	Velocity += Acceleration * DeltaTime;
+
+	UpdateLocationWithVelocity(DeltaTime);
+	UpdateRotation(DeltaTime);
+
 	if (HasAuthority()) {
-		FVector Force = GetActorForwardVector() * MaxDrivingForce * Throttle;
-		Force -= GetResistance();
-		FVector Acceleration = Force / CarMass;
-
-		Velocity += Acceleration * DeltaTime;
-
-		UpdateLocationWithVelocity(DeltaTime);
-		UpdateRotation(DeltaTime);
-
 		ReplicatedTransform = GetActorTransform();
 	}
-	//else {
-	//	SetActorLocation(ReplicatedLocation);
-	//	SetActorRotation(ReplicatedRotation);
-	//}
 
 	// Debug helper
 	FString RoleString;
