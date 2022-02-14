@@ -44,6 +44,10 @@ ARacingCar::ARacingCar(
 void ARacingCar::BeginPlay(
 ) {
 	Super::BeginPlay();
+
+	//if (HasAuthority()) {
+	//	NetUpdateFrequency = 1.0f;
+	//}
 }
 
 void ARacingCar::MoveForward(
@@ -128,21 +132,15 @@ FVector ARacingCar::GetRollingResistance(
 	return Velocity.GetSafeNormal() * WeightForce * RollResistCoefficient;
 }
 
+void ARacingCar::OnRepl_ReplicatedTransform(
+) {
+	SetActorTransform(ReplicatedTransform);
+}
+
 void ARacingCar::Tick(
 	float DeltaTime
 ) {
 	Super::Tick(DeltaTime);
-
-	/*
-	FVector Force = GetActorForwardVector() * MaxDrivingForce * Throttle;
-	Force -= GetResistance();
-	FVector Acceleration = Force / CarMass;
-
-	Velocity += Acceleration * DeltaTime;
-
-	UpdateLocationWithVelocity(DeltaTime);
-	UpdateRotation(DeltaTime);
-	*/
 
 	if (HasAuthority()) {
 		FVector Force = GetActorForwardVector() * MaxDrivingForce * Throttle;
@@ -154,13 +152,12 @@ void ARacingCar::Tick(
 		UpdateLocationWithVelocity(DeltaTime);
 		UpdateRotation(DeltaTime);
 
-		ReplicatedLocation = GetActorLocation();
-		ReplicatedRotation = GetActorRotation();
+		ReplicatedTransform = GetActorTransform();
 	}
-	else {
-		SetActorLocation(ReplicatedLocation);
-		SetActorRotation(ReplicatedRotation);
-	}
+	//else {
+	//	SetActorLocation(ReplicatedLocation);
+	//	SetActorRotation(ReplicatedRotation);
+	//}
 
 	// Debug helper
 	FString RoleString;
@@ -210,6 +207,5 @@ void ARacingCar::GetLifetimeReplicatedProps(
 
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME(ARacingCar, ReplicatedLocation);
-	DOREPLIFETIME(ARacingCar, ReplicatedRotation);
+	DOREPLIFETIME(ARacingCar, ReplicatedTransform);
 }
