@@ -11,6 +11,40 @@ class UCameraComponent;
 class USkeletalMeshComponent;
 class USpringArmComponent;
 
+USTRUCT()
+struct FRacingCarMove 
+{
+	GENERATED_USTRUCT_BODY()
+
+	UPROPERTY()
+	float Throttle = 0.0f;
+
+	UPROPERTY()
+	float RotationDirection = 0.0f;
+
+	UPROPERTY()
+	float DeltaTime = 0.0f;
+
+	UPROPERTY()
+	float Time = 0.0f;
+
+};
+
+USTRUCT()
+struct FRacingCarState
+{
+	GENERATED_USTRUCT_BODY()
+
+	UPROPERTY()
+	FTransform Transform;
+
+	UPROPERTY()
+	FVector Velocity;
+
+	UPROPERTY()
+	FRacingCarMove LastMove;
+};
+
 UCLASS()
 class RACING_API ARacingCar : public APawn
 {
@@ -34,22 +68,13 @@ protected:
 		float Value
 	);
 
-	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_MoveForward(
-		float Value
-	);
-
-	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_MoveRight(
-		float Value
-	);
-
 	void UpdateLocationWithVelocity(
 		float DeltaTime
 	);
 
 	void UpdateRotation(
-		float DeltaTime
+		float DeltaTime,
+		float RotDirection
 	);
 
 	FVector GetResistance(
@@ -59,6 +84,25 @@ protected:
 	);
 
 	FVector GetRollingResistance(
+	);
+
+	void SimulateMove(
+		FRacingCarMove const &CarMovement
+	);
+
+	FRacingCarMove CreateCarMove(
+		float DeltaTime
+	) const;
+
+	void ClearAcknowledgedMoves(
+		FRacingCarMove const &LastMove
+	);
+
+
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_SendMove(
+		FRacingCarMove const &CarMovement
 	);
 
 
@@ -94,23 +138,19 @@ protected:
 
 
 
-	UPROPERTY(Replicated)
 	FVector Velocity = FVector::ZeroVector;
-
-	UPROPERTY(Replicated)
 	float Throttle = 0.0f;
-
-	UPROPERTY(Replicated)
 	float RotationDirection = 0.0f;
 
-
-
-	UPROPERTY(ReplicatedUsing = OnRepl_ReplicatedTransform)
-	FTransform ReplicatedTransform;
+	UPROPERTY(ReplicatedUsing = OnRepl_ServerState)
+	FRacingCarState ServerState;
 
 	UFUNCTION()
-	void OnRepl_ReplicatedTransform(
+	void OnRepl_ServerState(
 	);
+
+
+	TArray<FRacingCarMove> UnacknowledgedMoves;
 
 public:	
 
@@ -121,5 +161,8 @@ public:
 	virtual void SetupPlayerInputComponent(
 		class UInputComponent* PlayerInputComponent
 	) override;
+
+	FString GetRoleString(
+	) const;
 
 };
