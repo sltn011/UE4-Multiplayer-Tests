@@ -10,9 +10,8 @@
 #include "Engine/World.h"
 #include "GameFramework/GameStateBase.h"
 #include "GameFramework/SpringArmComponent.h"
-
-// Network
-#include "Net/UnrealNetwork.h"
+#include "Gameplay/Components/CarMovementComponent.h"
+#include "Gameplay/Components/CarMovementReplicator.h"
 
 // Helpers
 #include "DrawDebugHelpers.h"
@@ -33,6 +32,10 @@ ARacingCar::ARacingCar(
 	Mesh->SetRelativeLocation(FVector{ -5.0f, 0.0f, -150.0f });
 	Mesh->SetupAttachment(GetRootComponent());
 
+	Movement = CreateDefaultSubobject<UCarMovementComponent>(TEXT("Movement"));
+
+	MovementReplicator = CreateDefaultSubobject<UCarMovementReplicator>(TEXT("MovementReplicator"));
+
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	SpringArm->SetRelativeLocation(FVector{ -210.0f, 0.0f, 155.0f });
 	SpringArm->SetRelativeRotation(FRotator{ -20.0f, 0.0f, 0.0f });
@@ -51,150 +54,10 @@ void ARacingCar::BeginPlay(
 	}
 }
 
-void ARacingCar::MoveForward(
-	float Value
-) {
-	Throttle = Value;
-}
-
-void ARacingCar::MoveRight(
-	float Value
-) {
-	RotationDirection = Value * FMath::Sign(FVector::DotProduct(Velocity, GetActorForwardVector()));
-}
-
-void ARacingCar::Server_SendMove_Implementation(
-	FRacingCarMove const &CarMovement
-) {
-	SimulateMove(CarMovement);
-
-	ServerState.Transform = GetActorTransform();
-	ServerState.Velocity = Velocity;
-	ServerState.LastMove = CarMovement;
-}
-
-bool ARacingCar::Server_SendMove_Validate(
-	FRacingCarMove const &CarMovement
-) {
-	return true; // TODO: Make better validation
-}
-
-void ARacingCar::UpdateLocationWithVelocity(
-	float DeltaTime
-) {
-	FVector Translation = Velocity * 100 * DeltaTime;
-
-	FHitResult HitResult;
-	AddActorWorldOffset(Translation, true, &HitResult);
-	if (HitResult.IsValidBlockingHit()) {
-		Velocity = FVector::ZeroVector;
-	}
-}
-
-void ARacingCar::UpdateRotation(
-	float DeltaTime,
-	float RotDirection
-) {
-	// dx = dTheta * r
-
-	float DeltaLocation = Velocity.Size() * DeltaTime;
-	float RotationAngle = (DeltaLocation / TurningCircleRadius) * RotDirection; // in radians
-	FQuat RotationQuat{ GetActorUpVector(), RotationAngle };
-
-	Velocity = RotationQuat * Velocity;
-
-	AddActorWorldRotation(RotationQuat);
-}
-
-FVector ARacingCar::GetResistance(
-) {
-	return GetAirResistance() + GetRollingResistance();
-}
-
-FVector ARacingCar::GetAirResistance(
-) {
-	return Velocity.GetSafeNormal() * Velocity.SizeSquared() * DragCoefficient;
-}
-
-FVector ARacingCar::GetRollingResistance(
-) {
-	UWorld *World = GetWorld();
-	float GravityAcceleration = World ? -World->GetGravityZ() / 100.0f : 9.81f;
-	float WeightForce = CarMass * GravityAcceleration;
-	return Velocity.GetSafeNormal() * WeightForce * RollResistCoefficient;
-}
-
-void ARacingCar::SimulateMove(
-	FRacingCarMove const &CarMovement
-) {
-	FVector Force = GetActorForwardVector() * MaxDrivingForce * CarMovement.Throttle;
-	Force -= GetResistance();
-	FVector Acceleration = Force / CarMass;
-
-	Velocity += Acceleration * CarMovement.DeltaTime;
-
-	UpdateLocationWithVelocity(CarMovement.DeltaTime);
-	UpdateRotation(CarMovement.DeltaTime, CarMovement.RotationDirection);
-}
-
-FRacingCarMove ARacingCar::CreateCarMove(
-	float DeltaTime
-) const {
-	FRacingCarMove CarMovement;
-	CarMovement.Throttle = Throttle;
-	CarMovement.RotationDirection = RotationDirection;
-	CarMovement.DeltaTime = DeltaTime;
-	CarMovement.Time = GetWorld()->GetGameState()->GetServerWorldTimeSeconds();
-	
-	return CarMovement;
-}
-
-void ARacingCar::ClearAcknowledgedMoves(
-	FRacingCarMove const &LastMove
-) {
-	TArray<FRacingCarMove> NewMoves;
-
-	for (FRacingCarMove const &Move : UnacknowledgedMoves) {
-		if (Move.Time > LastMove.Time) {
-			NewMoves.Add(Move);
-		}
-	}
-
-	UnacknowledgedMoves = MoveTemp(NewMoves);
-}
-
-void ARacingCar::OnRepl_ServerState(
-) {
-	SetActorTransform(ServerState.Transform);
-	Velocity = ServerState.Velocity;
-
-	ClearAcknowledgedMoves(ServerState.LastMove);
-
-	for (FRacingCarMove const &Move : UnacknowledgedMoves) {
-		SimulateMove(Move);
-	}
-}
-
 void ARacingCar::Tick(
 	float DeltaTime
 ) {
 	Super::Tick(DeltaTime);
-
-	ENetRole PawnRole = GetLocalRole();
-	if (PawnRole == ROLE_AutonomousProxy) { // Client
-		FRacingCarMove CarMovement = CreateCarMove(DeltaTime);
-		UnacknowledgedMoves.Add(CarMovement);
-		SimulateMove(CarMovement);
-		Server_SendMove(CarMovement);
-	}
-	else if (PawnRole == ROLE_Authority && IsLocallyControlled()) { // Server-Client
-		FRacingCarMove CarMovement = CreateCarMove(DeltaTime);
-		Server_SendMove(CarMovement);
-	}
-
-	if (PawnRole == ROLE_SimulatedProxy) {
-		SimulateMove(ServerState.LastMove);
-	}
 
 	// Debug helper
 	DrawDebugString(
@@ -213,18 +76,9 @@ void ARacingCar::SetupPlayerInputComponent(
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
 	if (PlayerInputComponent) {
-		PlayerInputComponent->BindAxis("MoveForward", this, &ARacingCar::MoveForward);
-		PlayerInputComponent->BindAxis("MoveRight", this, &ARacingCar::MoveRight);
+		PlayerInputComponent->BindAxis("MoveForward", Movement, &UCarMovementComponent::SetThrottle);
+		PlayerInputComponent->BindAxis("MoveRight", Movement, &UCarMovementComponent::SetRotationDirection);
 	}
-}
-
-// Setup property replication to receive updates for replicated values from server
-void ARacingCar::GetLifetimeReplicatedProps(
-	TArray< FLifetimeProperty > &OutLifetimeProps
-) const {
-
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	DOREPLIFETIME(ARacingCar, ServerState);
 }
 
 FString ARacingCar::GetRoleString(
