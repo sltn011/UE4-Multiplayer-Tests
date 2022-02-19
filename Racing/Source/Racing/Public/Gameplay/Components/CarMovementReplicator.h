@@ -47,6 +47,16 @@ protected:
 	void OnRepl_ServerState(
 	);
 
+	void AutoProxy_OnRepl_ServerState(
+	);
+
+	void SimProxy_OnRepl_ServerState(
+	);
+
+	void SimProxy_Tick(
+		float DeltaTime
+	);
+
 	UPROPERTY(ReplicatedUsing = OnRepl_ServerState)
 	FRacingCarState ServerState;
 
@@ -54,4 +64,9 @@ protected:
 
 	UPROPERTY()
 	UCarMovementComponent *MovementComponent;
+
+	float Client_TimeSinceUpdate;
+	float Client_TimeBetweenLastUpdates;
+	FTransform Client_StartTransform;
+	FVector Client_StartVelocity;
 };

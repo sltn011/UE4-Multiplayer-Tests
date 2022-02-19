@@ -49,6 +49,8 @@ void ARacingCar::BeginPlay(
 ) {
 	Super::BeginPlay();
 
+	SetReplicateMovement(false);
+
 	if (HasAuthority()) {
 		NetUpdateFrequency = 1.0f;
 	}

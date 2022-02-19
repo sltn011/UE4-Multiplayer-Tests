@@ -64,6 +64,7 @@ void UCarMovementReplicator::TickComponent(
 	}
 
 	if (PawnRole == ROLE_SimulatedProxy) {
+		SimProxy_Tick(DeltaTime);
 		MovementComponent->SimulateMove(ServerState.LastMove);
 	}
 }
@@ -103,6 +104,20 @@ bool UCarMovementReplicator::Server_SendMove_Validate(
 
 void UCarMovementReplicator::OnRepl_ServerState(
 ) {
+	ENetRole Role = GetOwnerRole();
+	switch (GetOwnerRole()) {
+	case ROLE_AutonomousProxy:
+		AutoProxy_OnRepl_ServerState();
+		break;
+
+	case ROLE_SimulatedProxy:
+		SimProxy_OnRepl_ServerState();
+		break;
+	}
+}
+
+void UCarMovementReplicator::AutoProxy_OnRepl_ServerState(
+) {
 	AActor *OwningPawn = GetOwner();
 	if (!MovementComponent || !OwningPawn) {
 		return;
@@ -116,6 +131,65 @@ void UCarMovementReplicator::OnRepl_ServerState(
 	for (FRacingCarMove const &Move : UnacknowledgedMoves) {
 		MovementComponent->SimulateMove(Move);
 	}
+}
+
+void UCarMovementReplicator::SimProxy_OnRepl_ServerState(
+) {
+	if (!GetOwner() || !MovementComponent) {
+		return;
+	}
+
+	Client_TimeBetweenLastUpdates = Client_TimeSinceUpdate;
+	Client_TimeSinceUpdate = 0.0f;
+	Client_StartTransform = GetOwner()->GetActorTransform();
+	Client_StartVelocity = MovementComponent->GetVelocity();
+}
+
+void UCarMovementReplicator::SimProxy_Tick(
+	float DeltaTime
+) {
+	Client_TimeSinceUpdate += DeltaTime;
+
+	if (Client_TimeBetweenLastUpdates < SMALL_NUMBER) {
+		return;
+	}
+
+	float LerpAlpha = Client_TimeSinceUpdate / Client_TimeBetweenLastUpdates;
+	float VelocityToDerivative = Client_TimeBetweenLastUpdates * 100;
+
+	FVector StartDerivative = Client_StartVelocity * VelocityToDerivative;
+	FVector TargetDerivative = ServerState.Velocity * VelocityToDerivative;
+
+	FVector NewLocation = FMath::CubicInterp(
+		Client_StartTransform.GetLocation(),
+		StartDerivative,
+		ServerState.Transform.GetLocation(),
+		TargetDerivative,
+		LerpAlpha
+	);
+
+	FVector NewDerivative = FMath::CubicInterpDerivative(
+		Client_StartTransform.GetLocation(),
+		StartDerivative,
+		ServerState.Transform.GetLocation(),
+		TargetDerivative,
+		LerpAlpha
+	);
+	FVector NewVelocity = NewDerivative / VelocityToDerivative;
+
+	FQuat NewRotation = FQuat::Slerp(
+		Client_StartTransform.GetRotation(),
+		ServerState.Transform.GetRotation(),
+		LerpAlpha
+	);
+	
+	AActor *OwningPawn = GetOwner();
+	if (!OwningPawn) {
+		return;
+	}
+	OwningPawn->SetActorLocation(NewLocation);
+	MovementComponent->SetVelocity(NewVelocity);
+	OwningPawn->SetActorRotation(NewRotation);
 }
 
 // Setup property replication to receive updates for replicated values from server
