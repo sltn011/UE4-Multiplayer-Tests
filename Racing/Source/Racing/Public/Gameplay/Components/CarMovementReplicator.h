@@ -69,4 +69,6 @@ protected:
 	float Client_TimeBetweenLastUpdates;
 	FTransform Client_StartTransform;
 	FVector Client_StartVelocity;
+
+	float ClientSimulatedTime = 0.0f;
 };

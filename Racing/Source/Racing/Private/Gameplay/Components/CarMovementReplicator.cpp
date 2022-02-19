@@ -12,13 +12,13 @@
 UCarMovementReplicator::UCarMovementReplicator(
 ) {
 	PrimaryComponentTick.bCanEverTick = true;
-
-	SetIsReplicated(true);
 }
 
 void UCarMovementReplicator::BeginPlay(
 ) {
 	Super::BeginPlay();
+
+	SetIsReplicated(true);
 
 	APawn *OwningPawn = GetOwner<APawn>();
 	if (OwningPawn) {
@@ -92,6 +92,7 @@ void UCarMovementReplicator::Server_SendMove_Implementation(
 	}
 
 	MovementComponent->SimulateMove(CarMovement);
+	ClientSimulatedTime += CarMovement.DeltaTime;
 
 	UpdateServerState(CarMovement);
 }
@@ -99,7 +100,13 @@ void UCarMovementReplicator::Server_SendMove_Implementation(
 bool UCarMovementReplicator::Server_SendMove_Validate(
 	FRacingCarMove const &CarMovement
 ) {
-	return true; // TODO: Make better validation
+	float ProposedTime = ClientSimulatedTime + CarMovement.DeltaTime;
+	bool ClientNotRunningAhead = ProposedTime < GetWorld()->TimeSeconds;
+	if (!ClientNotRunningAhead) {
+		return false;
+	}
+
+	return CarMovement.IsValid();
 }
 
 void UCarMovementReplicator::OnRepl_ServerState(

@@ -18,6 +18,10 @@ struct FRacingCarMove
 
 	UPROPERTY()
 	float Time = 0.0f;
+
+	bool IsValid() const {
+		return FMath::Abs(Throttle) <= 1.0f && FMath::Abs(RotationDirection) <= 1.0f;
+	}
 };
 
 USTRUCT(BlueprintType)
